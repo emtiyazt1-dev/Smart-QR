@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart QR Generator</title>
+
+<!-- QR Code Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style>
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+body{
+  font-family:Arial, sans-serif;
+  min-height:100vh;
+  background:
+    radial-gradient(circle at top left,#173b64 0,#08111f 35%,#030712 100%);
+  color:#fff;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:20px;
+}
+
+.app{
+  width:100%;
+  max-width:900px;
+  background:rgba(15,23,42,.88);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:28px;
+  padding:30px;
+  box-shadow:0 30px 80px rgba(0,0,0,.45);
+  backdrop-filter:blur(18px);
+}
+
+.header{
+  text-align:center;
+  margin-bottom:30px;
+}
+
+.logo{
+  width:70px;
+  height:70px;
+  margin:auto;
+  border-radius:20px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:34px;
+  background:linear-gradient(135deg,#22c55e,#06b6d4);
+  box-shadow:0 12px 35px rgba(6,182,212,.25);
+}
+
+h1{
+  margin-top:15px;
+  font-size:32px;
+}
+
+.subtitle{
+  color:#94a3b8;
+  margin-top:8px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:25px;
+}
+
+.card{
+  background:rgba(30,41,59,.7);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:22px;
+  padding:24px;
+}
+
+label{
+  display:block;
+  color:#cbd5e1;
+  margin-bottom:10px;
+  font-weight:600;
+}
+
+input{
+  width:100%;
+  padding:15px 16px;
+  border-radius:14px;
+  border:1px solid #334155;
+  background:#0f172a;
+  color:#fff;
+  outline:none;
+  font-size:15px;
+}
+
+input:focus{
+  border-color:#22c55e;
+  box-shadow:0 0 0 3px rgba(34,197,94,.12);
+}
+
+button{
+  border:0;
+  cursor:pointer;
+  border-radius:13px;
+  padding:13px 17px;
+  font-weight:700;
+  transition:.2s;
+}
+
+button:hover{
+  transform:translateY(-2px);
+}
+
+.generate{
+  width:100%;
+  margin-top:15px;
+  background:linear-gradient(135deg,#22c55e,#06b6d4);
+  color:#fff;
+  font-size:16px;
+}
+
+.qr-area{
+  min-height:310px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+}
+
+#qrcode{
+  background:white;
+  padding:15px;
+  border-radius:16px;
+  min-height:30px;
+}
+
+.placeholder{
+  color:#64748b;
+  text-align:center;
+}
+
+.actions{
+  display:flex;
+  gap:10px;
+  margin-top:20px;
+  width:100%;
+}
+
+.download{
+  flex:1;
+  background:#22c55e;
+  color:white;
+}
+
+.svg-btn{
+  flex:1;
+  background:#334155;
+  color:white;
+}
+
+.clear{
+  background:#ef4444;
+  color:white;
+}
+
+.status{
+  margin-top:15px;
+  font-size:13px;
+  text-align:center;
+  color:#94a3b8;
+  word-break:break-all;
+}
+
+.custom{
+  margin-top:20px;
+}
+
+.color-row{
+  display:flex;
+  gap:15px;
+  align-items:center;
+}
+
+.color-box{
+  flex:1;
+}
+
+input[type="color"]{
+  height:45px;
+  padding:3px;
+  cursor:pointer;
+}
+
+.history{
+  margin-top:25px;
+}
+
+.history h2{
+  font-size:18px;
+  margin-bottom:12px;
+}
+
+.history-item{
+  background:#0f172a;
+  border:1px solid #1e293b;
+  padding:12px;
+  border-radius:12px;
+  margin-top:8px;
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:center;
+}
+
+.history-url{
+  color:#94a3b8;
+  font-size:12px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.use-btn{
+  background:#1e293b;
+  color:#fff;
+  padding:8px 12px;
+  font-size:12px;
+}
+
+.footer{
+  text-align:center;
+  margin-top:25px;
+  color:#64748b;
+  font-size:12px;
+}
+
+@media(max-width:700px){
+  .app{
+    padding:20px;
+    border-radius:22px;
+  }
+
+  .grid{
+    grid-template-columns:1fr;
+  }
+
+  h1{
+    font-size:26px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <div class="header">
+    <div class="logo">⌗</div>
+    <h1>Smart QR Generator</h1>
+    <p class="subtitle">
+      Turn any link into a real, scannable QR code
+    </p>
+  </div>
+
+  <div class="grid">
+
+    <!-- LEFT -->
+    <div class="card">
+
+      <label for="url">Enter your URL</label>
+
+      <input
+        id="url"
+        type="url"
+        placeholder="https://example.com"
+        autocomplete="off"
+      >
+
+      <button class="generate" onclick="generateQR()">
+        Generate QR Code
+      </button>
+
+      <div class="custom">
+
+        <label>Customize QR</label>
+
+        <div class="color-row">
+
+          <div class="color-box">
+            <small>QR Color</small>
+            <input id="qrColor" type="color" value="#000000">
+          </div>
+
+          <div class="color-box">
+            <small>Background</small>
+            <input id="bgColor" type="color" value="#ffffff">
+          </div>
+
+        </div>
+
+      </div>
+
+      <button
+        class="clear"
+        style="width:100%;margin-top:15px"
+        onclick="clearQR()"
+      >
+        Clear
+      </button>
+
+    </div>
+
+
+    <!-- RIGHT -->
+    <div class="card qr-area">
+
+      <div id="placeholder" class="placeholder">
+        Your QR code will appear here
+      </div>
+
+      <div id="qrcode"></div>
+
+      <div id="actions" class="actions" style="display:none">
+
+        <button class="download" onclick="downloadPNG()">
+          Download PNG
+        </button>
+
+        <button class="svg-btn" onclick="copyLink()">
+          Copy Link
+        </button>
+
+      </div>
+
+      <div id="status" class="status"></div>
+
+    </div>
+
+  </div>
+
+
+  <div class="history">
+
+    <h2>Recent QR Codes</h2>
+
+    <div id="historyList"></div>
+
+  </div>
+
+
+  <div class="footer">
+    Smart QR Generator • Static QR • Works without a backend
+  </div>
+
+</div>
+
+
+<script>
+
+let currentURL = "";
+
+
+// Generate QR
+function generateQR(){
+
+  const input = document.getElementById("url");
+  let url = input.value.trim();
+
+  if(!url){
+    alert("Please enter a URL.");
+    return;
+  }
+
+  // Automatically add https
+  if(!/^https?:\/\//i.test(url)){
+    url = "https://" + url;
+  }
+
+  try{
+    new URL(url);
+  }catch{
+    alert("Please enter a valid URL.");
+    return;
+  }
+
+  currentURL = url;
+
+  const qrContainer = document.getElementById("qrcode");
+
+  qrContainer.innerHTML = "";
+
+  document.getElementById("placeholder").style.display="none";
+  document.getElementById("actions").style.display="flex";
+
+  const qrColor =
+    document.getElementById("qrColor").value;
+
+  const bgColor =
+    document.getElementById("bgColor").value;
+
+  new QRCode(qrContainer, {
+
+    text:url,
+
+    width:260,
+    height:260,
+
+    colorDark:qrColor,
+    colorLight:bgColor,
+
+    correctLevel:QRCode.CorrectLevel.H
+
+  });
+
+  document.getElementById("status").textContent =
+    "QR ready: " + url;
+
+  saveHistory(url);
+}
+
+
+// Download PNG
+function downloadPNG(){
+
+  const canvas =
+    document.querySelector("#qrcode canvas");
+
+  if(!canvas){
+    alert("Generate a QR code first.");
+    return;
+  }
+
+  const link =
+    document.createElement("a");
+
+  link.download="smart-qr-code.png";
+
+  link.href=canvas.toDataURL("image/png");
+
+  link.click();
+}
+
+
+// Copy URL
+async function copyLink(){
+
+  if(!currentURL){
+    return;
+  }
+
+  try{
+
+    await navigator.clipboard.writeText(currentURL);
+
+    alert("Link copied!");
+
+  }catch{
+
+    const temp =
+      document.createElement("textarea");
+
+    temp.value=currentURL;
+
+    document.body.appendChild(temp);
+
+    temp.select();
+
+    document.execCommand("copy");
+
+    temp.remove();
+
+    alert("Link copied!");
+
+  }
+
+}
+
+
+// Clear
+function clearQR(){
+
+  document.getElementById("url").value="";
+
+  document.getElementById("qrcode").innerHTML="";
+
+  document.getElementById("placeholder").style.display="block";
+
+  document.getElementById("actions").style.display="none";
+
+  document.getElementById("status").textContent="";
+
+  currentURL="";
+}
+
+
+// History
+function saveHistory(url){
+
+  let history =
+    JSON.parse(localStorage.getItem("qrHistory") || "[]");
+
+  history =
+    history.filter(item => item !== url);
+
+  history.unshift(url);
+
+  history =
+    history.slice(0,5);
+
+  localStorage.setItem(
+    "qrHistory",
+    JSON.stringify(history)
+  );
+
+  renderHistory();
+}
+
+
+function renderHistory(){
+
+  const container =
+    document.getElementById("historyList");
+
+  const history =
+    JSON.parse(
+      localStorage.getItem("qrHistory") || "[]"
+    );
+
+  container.innerHTML="";
+
+  if(history.length===0){
+
+    container.innerHTML =
+      '<div class="history-url">No QR history yet.</div>';
+
+    return;
+  }
+
+  history.forEach(url => {
+
+    const item =
+      document.createElement("div");
+
+    item.className="history-item";
+
+    item.innerHTML=`
+
+      <div class="history-url">
+        ${escapeHTML(url)}
+      </div>
+
+      <button
+        class="use-btn"
+        onclick="useHistory('${encodeURIComponent(url)}')"
+      >
+        Use
+      </button>
+
+    `;
+
+    container.appendChild(item);
+
+  });
+
+}
+
+
+function useHistory(encoded){
+
+  const url =
+    decodeURIComponent(encoded);
+
+  document.getElementById("url").value=url;
+
+  generateQR();
+
+}
+
+
+function escapeHTML(text){
+
+  return text
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+
+}
+
+
+// Enter key support
+document
+  .getElementById("url")
+  .addEventListener("keydown",function(e){
+
+    if(e.key==="Enter"){
+      generateQR();
+    }
+
+  });
+
+
+// Re-generate when color changes
+document
+  .getElementById("qrColor")
+  .addEventListener("change",function(){
+
+    if(currentURL){
+      generateQR();
+    }
+
+  });
+
+
+document
+  .getElementById("bgColor")
+  .addEventListener("change",function(){
+
+    if(currentURL){
+      generateQR();
+    }
+
+  });
+
+
+// Load history
+renderHistory();
+
+</script>
+
+</body>
+</html>
